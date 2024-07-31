@@ -11,7 +11,7 @@ def load_lynx_hare_data(file_location):
     df = pd.read_csv(file_location, header=None, names=names)
     return df
 
-df = load_lynx_hare_data("lynxhare.csv")
+df = load_lynx_hare_data("/Users/sajai/Documents/lotka-volterra-wolf-moose/lynxhare.csv")
 df['modified time'] = df['year'] - 1845
 mod_times = df['modified time'].values
 observed_data = df[['hare', 'lynx']].values
@@ -42,26 +42,36 @@ else:
     mask = (mod_times >= year_range[0]) & (mod_times <= year_range[1])
     filtered_years = mod_times[mask]
     values = observed_data[mask]
-    filtered_hare_population = observed_data[:, 0]
-    filtered_lynx_population = observed_data[:, 1]
+    filtered_hare_population = values[:, 0]
+    filtered_lynx_population = values[:, 1]
 
     # Check if filtered data is available
     if len(filtered_years) == 0:
         st.error("No data available for the selected year range.")
     else:
         # Plot the data
-        fig, ax = plt.subplots()
-        ax.plot(filtered_years, filtered_hare_population, label='Hare')
-        ax.plot(filtered_years, filtered_lynx_population, label='Lynx')
-        ax.set_xlabel('Years since 1845')
-        ax.set_ylabel('Population size')
-        ax.legend()
-
+        fig1, ax1 = plt.subplots()
+        ax1.plot(filtered_years, filtered_hare_population, label='Hare')
+        ax1.plot(filtered_years, filtered_lynx_population, label='Lynx')
+        ax1.set_xlabel('Years since 1845')
+        ax1.set_ylabel('Population size')
+        ax1.legend()
         # Display the plot in the Streamlit app
-        st.pyplot(fig)
+        st.pyplot(fig1)
 
         st.title("Hare and Lynx Population Analysis")
 
+        fig2, ax2 = plt.subplots()
+        ax2.set_xlim(0, 80)
+        ax2.set_ylim(0, 80)
+        ax2.set_xlabel('hare')
+        ax2.set_ylabel('lynx')
+        ax2.plot(filtered_hare_population, filtered_lynx_population)
+        ax2.quiver(filtered_hare_population[1:], filtered_lynx_population[1:], np.diff(filtered_hare_population), np.diff(filtered_lynx_population))
+        ax2.legend()
+        # Display the plot in the Streamlit app
+        st.pyplot(fig2)
+    
         def dX_dt(X, t):
             a, b, c, d =  0.32, 0.13, 1.27, 0.38
             x, y = X
@@ -105,6 +115,7 @@ else:
             plt.ylabel('Predator (Lynx) Population')
             plt.title('Phase Plane of the Lotka-Volterra Model')
             plt.show()
+
         fig_phase_plane = plot_lotka_volterra_phase_plane()
         st.pyplot(fig_phase_plane)
         
