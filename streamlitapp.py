@@ -5,6 +5,10 @@ import pandas as pd
 import streamlit as st
 import numpy as np
 import scipy
+import pints.plot
+from concurrent.futures import ProcessPoolExecutor
+    
+model = pints.toy.LotkaVolterraModel()
 
 def load_lynx_hare_data(file_location):
     names = ["year", "hare", "lynx"]
@@ -12,7 +16,7 @@ def load_lynx_hare_data(file_location):
     return df
 
 df = load_lynx_hare_data("/Users/sajai/Documents/lotka-volterra-wolf-moose/lynxhare.csv")
-df['modified time'] = df['year'] - 1845
+df['modified time'] = df['year'] 
 mod_times = df['modified time'].values
 observed_data = df[['hare', 'lynx']].values
 
@@ -54,7 +58,7 @@ else:
         ax1.plot(filtered_years, filtered_hare_population, label='Hare')
         ax1.plot(filtered_years, filtered_lynx_population, label='Lynx')
         ax1.set_xlabel('Years since 1845')
-        ax1.set_ylabel('Population size')
+        ax1.set_ylabel('Population size in 1000s')
         ax1.legend()
         # Display the plot in the Streamlit app
         st.pyplot(fig1)
@@ -62,60 +66,74 @@ else:
         st.title("Hare and Lynx Population Analysis")
 
         fig2, ax2 = plt.subplots()
-        ax2.set_xlim(0, 80)
-        ax2.set_ylim(0, 80)
+        ax2.set_xlim(0, 150)
+        ax2.set_ylim(0, 90)
         ax2.set_xlabel('hare')
         ax2.set_ylabel('lynx')
+        scatter = ax2.scatter(filtered_hare_population, filtered_lynx_population, c=filtered_years)
+        colorbar=fig2.colorbar(scatter, ax=ax2)
+        # ax2.quiver(filtered_hare_population[1:], filtered_lynx_population[1:], np.diff(filtered_hare_population), np.diff(filtered_lynx_population)
         ax2.plot(filtered_hare_population, filtered_lynx_population)
-        ax2.quiver(filtered_hare_population[1:], filtered_lynx_population[1:], np.diff(filtered_hare_population), np.diff(filtered_lynx_population))
-        ax2.legend()
+    
         # Display the plot in the Streamlit app
         st.pyplot(fig2)
-    
-        def dX_dt(X, t):
-            a, b, c, d =  0.32, 0.13, 1.27, 0.38
-            x, y = X
-            dotx = x * (a - b * y)
-            doty = y * (-c + d * x)
-            return np.array([dotx, doty])
 
-        def plot_lotka_volterra_phase_plane():
-            a, b, c, d =  0.32, 0.13, 1.27, 0.38
-            plt.figure(figsize=(10,10))
+        problem = pints.MultiOutputProblem(model, filtered_years, np.log(values))    
+        error = pints.SumOfSquaresError(problem)
 
-            init_x, init_y =  filtered_hare_population, filtered_lynx_population
-    
-            plt.plot(init_x, init_y, 'g*', markersize=30)
+        # Optimization setup
+        initial_parameters = [0.50, 0.10, 1.0, 0.50]
+        bounds_lower = [0.01, 0.01, 0.01, 0.01]
+        bounds_upper = [10, 10, 10, 10]
 
-            for v in values:
-                X0 = v                          # starting point
-                X = scipy.integrate.odeint( dX_dt, X0, np.linspace(0,80,3000))
-                plt.plot( X[:,0], X[:,1], lw=3, color='green')
+        transformation = pints.RectangularBoundariesTransformation(bounds_lower, bounds_upper)
+            
+        opt = pints.OptimisationController(
+                error,
+                initial_parameters,
+                method=pints.CMAES,
+                transformation=transformation
+            )
+            
+        opt.set_log_interval(20)
+        opt.set_max_evaluations(20000)
+            
+        optimized_parameters, _ = opt.run()
 
-            # plot nullclines
-            x = np.linspace(0, 250, 24)
-            y = np.linspace(0, 250, 24)
+        # Set parameters for optimization
+        n_fine = 1000
+        num_lines = 100
+        times_fine = np.linspace(min(filtered_years), max(filtered_years), n_fine)
 
-            plt.hlines(a/b, x.min(), x.max(), color='#F39200', lw=4, label='y-nullcline 1')
-            plt.plot(x,(a/b)* np.ones_like(x), color='#0072bd', lw=4, label='x-nullcline 2')
-            plt.vlines(c/d, x.min(), x.max(), color='#0072bd', lw=4, label='x-nullcline 1')
-            plt.plot(x, (c/d)* np.ones_like(x), color='#F39200', lw=4, label='y-nullcline 2')
+        # Arrays to hold simulated hare and lynx populations
+        hare = np.zeros((n_fine, num_lines))
+        lynx = np.zeros((n_fine, num_lines))
 
-            # quiverplot - define a grid and compute direction at each point
-            X, Y = np.meshgrid(x, y)  # create a grid
-            DX = a * X - b * X * Y  # evaluate dx/dt
-            DY = -c * Y + d * X * Y  # evaluate dy/dt
-            M = (np.hypot(DX, DY))  # norm growth rate
-            M[M == 0] = 1.  # avoid zero division errors
+        # Collect results
+        for i in range(num_lines):
+            optimized_simulation = np.exp(model.simulate(times=times_fine, parameters=optimized_parameters))
+            hare[:, i] = optimized_simulation[:,0]
+            lynx[:, i] = optimized_simulation[:,1]
 
-            plt.quiver(X, Y, DX / M, DY / M, M)
-            plt.xlim(-0.05, 100)
-            plt.ylim(-0.05, 250)
-            plt.xlabel('Prey (Hare) Population')
-            plt.ylabel('Predator (Lynx) Population')
-            plt.title('Phase Plane of the Lotka-Volterra Model')
-            plt.show()
+        # Plotting
+        fig3, ax3 = plt.subplots(figsize=(15, 7))
 
-        fig_phase_plane = plot_lotka_volterra_phase_plane()
-        st.pyplot(fig_phase_plane)
+        # Plot the real data
+        ax3.plot(filtered_years,filtered_hare_population, 'o-', label='Observed Hare')
+        ax3.plot(filtered_years,filtered_lynx_population, 'o-', label='Observed Lynx')
+
+        # Plot the hare and lynx populations with low opacity for visualization
+        for i in range(num_lines):
+            ax3.plot(times_fine, hare[:, i], color='blue', alpha=0.01)
+            ax3.plot(times_fine, lynx[:, i], color='orange', alpha=0.01)
+
+        # Set labels for the axes
+        ax3.set_xlabel('Years')
+        ax3.set_ylabel('Populations')
+
+        # Add legends
+        ax3.legend()
+
+        # Display the plot in the Streamlit app
+        st.pyplot(fig3)
         
