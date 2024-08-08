@@ -14,7 +14,7 @@ def load_lynx_hare_data(file_location):
     df = pd.read_csv(file_location, header=None, names=names)
     return df
 
-df = load_lynx_hare_data("/Users/sajai/Documents/lotka-volterra-wolf-moose/lynxhare.csv")
+df = load_lynx_hare_data("lynxhare.csv")
 df['modified time'] = df['year'] 
 mod_times = df['modified time'].values
 observed_data = df[['hare', 'lynx']].values
