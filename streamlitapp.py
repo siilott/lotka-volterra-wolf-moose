@@ -78,102 +78,102 @@ else:
         # Display the plot in the Streamlit app
         st.pyplot(fig2)   
 
-        st.title("MCMC Fitting of Model to Data")
-        # Create an object with links to the model and time series
-        problem = pints.MultiOutputProblem(model, filtered_years, np.log(values))
+        # st.title("MCMC Fitting of Model to Data")
+        # # Create an object with links to the model and time series
+        # problem = pints.MultiOutputProblem(model, filtered_years, np.log(values))
 
-        # Create a log posterior
-        log_prior_theta = pints.UniformLogPrior(lower_or_boundaries=0, upper=2)
-        log_prior_sigma = pints.GaussianLogPrior(mean=0, sd=3)
-        log_prior = pints.ComposedLogPrior(log_prior_theta, log_prior_theta, log_prior_theta, log_prior_theta,
-                                   log_prior_sigma, log_prior_sigma)
-        log_likelihood = pints.GaussianLogLikelihood(problem)
-        log_posterior = pints.LogPosterior(log_likelihood, log_prior)
+        # # Create a log posterior
+        # log_prior_theta = pints.UniformLogPrior(lower_or_boundaries=0, upper=2)
+        # log_prior_sigma = pints.GaussianLogPrior(mean=0, sd=3)
+        # log_prior = pints.ComposedLogPrior(log_prior_theta, log_prior_theta, log_prior_theta, log_prior_theta,
+        #                            log_prior_sigma, log_prior_sigma)
+        # log_likelihood = pints.GaussianLogLikelihood(problem)
+        # log_posterior = pints.LogPosterior(log_likelihood, log_prior)
 
-        # Run MCMC on the noisy data
-        x0 = [[0.43, 0.16, 0.9, 0.27, 0.28, 0.26]] * 4
-        mcmc = pints.MCMCController(log_posterior, 4, x0)
-        mcmc.set_max_iterations(4000)
+        # # Run MCMC on the noisy data
+        # x0 = [[0.43, 0.16, 0.9, 0.27, 0.28, 0.26]] * 4
+        # mcmc = pints.MCMCController(log_posterior, 4, x0)
+        # mcmc.set_max_iterations(1000)
 
-        chains = mcmc.run()   
+        # chains = mcmc.run()   
 
-        results = pints.MCMCSummary(
-            chains=chains, 
-            parameter_names=["a", "b", "c", "d", "sigma_1", "sigma_2"], 
-            time=mcmc.time())
+        # results = pints.MCMCSummary(
+        #     chains=chains, 
+        #     parameter_names=["a", "b", "c", "d", "sigma_1", "sigma_2"], 
+        #     time=mcmc.time())
 
-        # Select first chain
-        chain1 = chains[0]
+        # # Select first chain
+        # chain1 = chains[0]
 
-        # Remove warm up period
-        chain1 = chain1[500:]
+        # # Remove warm up period
+        # chain1 = chain1[500:]
 
-        # Create fine-grained list of times for plotting
-        n_fine = 1000
-        times_fine = np.linspace(min(filtered_years), max(filtered_years), n_fine)
-
-        # Plot some predictions with these samples
-        num_lines = 100
-        hare = np.zeros((n_fine, num_lines))
-        lynx = np.zeros((n_fine, num_lines))
-        for i in range(num_lines):
-            temp = np.exp(model.simulate(times=times_fine, parameters=chain1[i, :4]))
-            hare[:, i] = temp[:, 0]
-            lynx[:, i] = temp[:, 1]
-
-        # # Set parameters for optimization
+        # # Create fine-grained list of times for plotting
         # n_fine = 1000
-        # num_lines = 10
         # times_fine = np.linspace(min(filtered_years), max(filtered_years), n_fine)
 
-        # # Arrays to hold simulated hare and lynx populations
+        # # Plot some predictions with these samples
+        # num_lines = 100
         # hare = np.zeros((n_fine, num_lines))
         # lynx = np.zeros((n_fine, num_lines))
-
-
-        # # Collect results
         # for i in range(num_lines):
-        #     problem = pints.MultiOutputProblem(model, filtered_years, np.log(values))    
-        #     error = pints.SumOfSquaresError(problem)
+        #     temp = np.exp(model.simulate(times=times_fine, parameters=chain1[i, :4]))
+        #     hare[:, i] = temp[:, 0]
+        #     lynx[:, i] = temp[:, 1]
 
-        #     # Optimization setup
-        #     initial_parameters = [0.50, 0.10, 1.0, 0.50]
-        #     bounds_lower = [0.01, 0.01, 0.01, 0.01]
-        #     bounds_upper = [5, 5, 5, 5]
+        # # # Set parameters for optimization
+        # # n_fine = 1000
+        # # num_lines = 10
+        # # times_fine = np.linspace(min(filtered_years), max(filtered_years), n_fine)
 
-        #     transformation = pints.RectangularBoundariesTransformation(bounds_lower, bounds_upper)
-        #     opt = pints.OptimisationController(
-        #         error,
-        #         initial_parameters,
-        #         method=pints.CMAES,
-        #         transformation=transformation
-        #         )
+        # # # Arrays to hold simulated hare and lynx populations
+        # # hare = np.zeros((n_fine, num_lines))
+        # # lynx = np.zeros((n_fine, num_lines))
+
+
+        # # # Collect results
+        # # for i in range(num_lines):
+        # #     problem = pints.MultiOutputProblem(model, filtered_years, np.log(values))    
+        # #     error = pints.SumOfSquaresError(problem)
+
+        # #     # Optimization setup
+        # #     initial_parameters = [0.50, 0.10, 1.0, 0.50]
+        # #     bounds_lower = [0.01, 0.01, 0.01, 0.01]
+        # #     bounds_upper = [5, 5, 5, 5]
+
+        # #     transformation = pints.RectangularBoundariesTransformation(bounds_lower, bounds_upper)
+        # #     opt = pints.OptimisationController(
+        # #         error,
+        # #         initial_parameters,
+        # #         method=pints.CMAES,
+        # #         transformation=transformation
+        # #         )
             
-        #     opt.set_log_interval(20)
-        #     opt.set_max_evaluations(20000)
+        # #     opt.set_log_interval(20)
+        # #     opt.set_max_evaluations(20000)
             
-        #     optimized_parameters, _ = opt.run()
-        #     optimized_simulation = np.exp(model.simulate(times = times_fine, parameters= optimized_parameters))
-        #     hare[:, i] = optimized_simulation[:,0]
-        #     lynx[:, i] = optimized_simulation[:,1]
+        # #     optimized_parameters, _ = opt.run()
+        # #     optimized_simulation = np.exp(model.simulate(times = times_fine, parameters= optimized_parameters))
+        # #     hare[:, i] = optimized_simulation[:,0]
+        # #     lynx[:, i] = optimized_simulation[:,1]
 
-        # Plotting
-        fig3, ax3 = plt.subplots()
+        # # Plotting
+        # fig3, ax3 = plt.subplots()
 
-        # Plot the real data
-        ax3.plot(filtered_years, filtered_hare_population, 'o-', label='Observed Hare')
-        ax3.plot(filtered_years, filtered_lynx_population, 'o-', label='Observed Lynx')
+        # # Plot the real data
+        # ax3.plot(filtered_years, filtered_hare_population, 'o-', label='Observed Hare')
+        # ax3.plot(filtered_years, filtered_lynx_population, 'o-', label='Observed Lynx')
 
-        # Plot the hare and lynx populations with low opacity for visualization
-        ax3.plot(times_fine, hare, color='blue', alpha=0.01)
-        ax3.plot(times_fine, lynx, color='orange', alpha=0.01)
+        # # Plot the hare and lynx populations with low opacity for visualization
+        # ax3.plot(times_fine, hare, color='blue', alpha=0.01)
+        # ax3.plot(times_fine, lynx, color='orange', alpha=0.01)
 
-        # Set labels for the axes
-        ax3.set_xlabel('Years since 1845')
-        ax3.set_ylabel('Populations')
+        # # Set labels for the axes
+        # ax3.set_xlabel('Years since 1845')
+        # ax3.set_ylabel('Populations')
 
-        ax3.legend()
+        # ax3.legend()
 
-        # Display the plot in the Streamlit app
-        st.pyplot(fig3)
+        # # Display the plot in the Streamlit app
+        # st.pyplot(fig3)
         
