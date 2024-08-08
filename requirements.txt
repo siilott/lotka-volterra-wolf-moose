@@ -1,1 +1,2 @@
 pints
+numpy==1.26
