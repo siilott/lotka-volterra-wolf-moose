@@ -14,7 +14,7 @@ def load_lynx_hare_data(file_location):
     df = pd.read_csv(file_location, header=None, names=names)
     return df
 
-df = load_lynx_hare_data("lynxhare.csv")
+df = load_lynx_hare_data("/Users/sajai/Documents/lotka-volterra-wolf-moose/lynxhare.csv")
 df['modified time'] = df['year'] 
 mod_times = df['modified time'].values
 observed_data = df[['hare', 'lynx']].values
@@ -50,7 +50,7 @@ else:
         st.error("No data available for the selected year range.")
     else:
         # Title for the plot
-        st.title("Hare and Lynx Population Over Time")
+        st.title("Time Series Solution")
 
         # Plot the data
         fig1, ax1 = plt.subplots()
@@ -63,7 +63,7 @@ else:
         st.pyplot(fig1)
 
         # Title for the plot
-        st.title("Phase space solution")
+        st.title("Phase Space Solution")
 
         fig2, ax2 = plt.subplots()
         ax2.set_xlim(0, 150)
@@ -75,8 +75,8 @@ else:
         # ax2.quiver(filtered_hare_population[1:], filtered_lynx_population[1:], np.diff(filtered_hare_population), np.diff(filtered_lynx_population)
         ax2.plot(filtered_hare_population, filtered_lynx_population)
     
-        # Display the plot in the Streamlit app
-        st.pyplot(fig2)   
+        # # Display the plot in the Streamlit app
+        # st.pyplot(fig2)   
 
         # st.title("MCMC Fitting of Model to Data")
         # # Create an object with links to the model and time series
@@ -121,43 +121,43 @@ else:
         #     hare[:, i] = temp[:, 0]
         #     lynx[:, i] = temp[:, 1]
 
-        # # # Set parameters for optimization
-        # # n_fine = 1000
-        # # num_lines = 10
-        # # times_fine = np.linspace(min(filtered_years), max(filtered_years), n_fine)
+        # # Set parameters for optimization
+        # n_fine = 1000
+        # num_lines = 10
+        # times_fine = np.linspace(min(filtered_years), max(filtered_years), n_fine)
 
-        # # # Arrays to hold simulated hare and lynx populations
-        # # hare = np.zeros((n_fine, num_lines))
-        # # lynx = np.zeros((n_fine, num_lines))
+        # # Arrays to hold simulated hare and lynx populations
+        # hare = np.zeros((n_fine, num_lines))
+        # lynx = np.zeros((n_fine, num_lines))
 
 
-        # # # Collect results
-        # # for i in range(num_lines):
-        # #     problem = pints.MultiOutputProblem(model, filtered_years, np.log(values))    
-        # #     error = pints.SumOfSquaresError(problem)
+        # # Collect results
+        # for i in range(num_lines):
+        #     problem = pints.MultiOutputProblem(model, filtered_years, np.log(values))    
+        #     error = pints.SumOfSquaresError(problem)
 
-        # #     # Optimization setup
-        # #     initial_parameters = [0.50, 0.10, 1.0, 0.50]
-        # #     bounds_lower = [0.01, 0.01, 0.01, 0.01]
-        # #     bounds_upper = [5, 5, 5, 5]
+        #     # Optimization setup
+        #     initial_parameters = [0.50, 0.10, 1.0, 0.50]
+        #     bounds_lower = [0.01, 0.01, 0.01, 0.01]
+        #     bounds_upper = [5, 5, 5, 5]
 
-        # #     transformation = pints.RectangularBoundariesTransformation(bounds_lower, bounds_upper)
-        # #     opt = pints.OptimisationController(
-        # #         error,
-        # #         initial_parameters,
-        # #         method=pints.CMAES,
-        # #         transformation=transformation
-        # #         )
+        #     transformation = pints.RectangularBoundariesTransformation(bounds_lower, bounds_upper)
+        #     opt = pints.OptimisationController(
+        #         error,
+        #         initial_parameters,
+        #         method=pints.CMAES,
+        #         transformation=transformation
+        #         )
             
-        # #     opt.set_log_interval(20)
-        # #     opt.set_max_evaluations(20000)
+        #     opt.set_log_interval(20)
+        #     opt.set_max_evaluations(20000)
             
-        # #     optimized_parameters, _ = opt.run()
-        # #     optimized_simulation = np.exp(model.simulate(times = times_fine, parameters= optimized_parameters))
-        # #     hare[:, i] = optimized_simulation[:,0]
-        # #     lynx[:, i] = optimized_simulation[:,1]
+        #     optimized_parameters, _ = opt.run()
+        #     optimized_simulation = np.exp(model.simulate(times = times_fine, parameters= optimized_parameters))
+        #     hare[:, i] = optimized_simulation[:,0]
+        #     lynx[:, i] = optimized_simulation[:,1]
 
-        # # Plotting
+        # #Plotting
         # fig3, ax3 = plt.subplots()
 
         # # Plot the real data
